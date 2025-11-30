@@ -1,0 +1,56 @@
+# Build directories
+build/
+bin/
+lib/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# Version file (keep VERSION in repo, but ignore if auto-generated)
+# VERSION
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+*.cmake
+!CMakeLists.txt
+
+# IDE
+# Keep .vscode settings but ignore user-specific files
+.vscode/settings.json.user
+.vscode/launch.json.user
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Qt
+*.pro.user
+*.pro.user.*
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+
+# JUCE
+JUCE/
+
+# Testing
+*.gcda
+*.gcno
+*.gcov
+
+# macOS
+.DS_Store
+*.app
+
+# Windows
+*.exe
+*.pdb
+

@@ -1,0 +1,81 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/third_party/JUCE/modules",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_audio_basics",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_audio_devices",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_audio_formats",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_audio_processors",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_audio_utils",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_core",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_data_structures",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_events",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_graphics",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_gui_basics",
+                "${workspaceFolder}/third_party/JUCE/modules/juce_gui_extra",
+                "${workspaceFolder}/build/third_party/JUCE",
+                "/usr/local/include",
+                "/opt/homebrew/include",
+                "/opt/homebrew/opt/qt@6/include",
+                "/opt/homebrew/opt/qt@6/include/QtCore",
+                "/opt/homebrew/opt/qt@6/include/QtWidgets",
+                "/opt/homebrew/opt/qt@6/include/QtGui",
+                "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1",
+                "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/*/include",
+                "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"
+            ],
+            "defines": [
+                "JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1",
+                "JUCE_MODULE_AVAILABLE_juce_audio_basics=1",
+                "JUCE_MODULE_AVAILABLE_juce_audio_devices=1",
+                "JUCE_MODULE_AVAILABLE_juce_audio_formats=1",
+                "JUCE_MODULE_AVAILABLE_juce_audio_processors=1",
+                "JUCE_MODULE_AVAILABLE_juce_audio_utils=1",
+                "JUCE_MODULE_AVAILABLE_juce_core=1",
+                "JUCE_MODULE_AVAILABLE_juce_data_structures=1",
+                "JUCE_MODULE_AVAILABLE_juce_events=1",
+                "JUCE_MODULE_AVAILABLE_juce_graphics=1",
+                "JUCE_MODULE_AVAILABLE_juce_gui_basics=1",
+                "JUCE_MODULE_AVAILABLE_juce_gui_extra=1"
+            ],
+            "macFrameworkPath": [
+                "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/clang++",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "macos-clang-arm64",
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/third_party/JUCE/modules",
+                "/usr/include",
+                "/usr/local/include",
+                "/usr/include/x86_64-linux-gnu/qt6",
+                "/usr/include/x86_64-linux-gnu/qt6/QtCore",
+                "/usr/include/x86_64-linux-gnu/qt6/QtWidgets",
+                "/usr/include/x86_64-linux-gnu/qt6/QtGui"
+            ],
+            "defines": [
+                "JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}
+

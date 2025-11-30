@@ -1,0 +1,150 @@
+# Finirig C++ Project Rules
+
+## Code Style & Standards
+
+### C++ Standard
+
+- Use C++20 standard
+- Prefer modern C++ features (smart pointers, ranges, concepts where applicable)
+- No raw pointers for ownership - use `std::unique_ptr` or `std::shared_ptr`
+- Use `const` and `constexpr` liberally
+- Prefer `auto` when type is obvious from context
+
+### Naming Conventions
+
+- **Classes**: PascalCase (e.g., `AudioEngine`, `OverdrivePedal`)
+- **Functions/Methods**: camelCase (e.g., `processAudio`, `setGain`)
+- **Variables**: camelCase (e.g., `sampleRate`, `bufferSize`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_BUFFER_SIZE`, `DEFAULT_SAMPLE_RATE`)
+- **Private members**: camelCase with trailing underscore (e.g., `sampleRate_`, `buffer_`)
+- **Namespaces**: lowercase (e.g., `finirig::audio`)
+
+### File Organization
+
+- One class per header/source pair
+- Headers in `include/finirig/` mirror source structure
+- Sources in `src/` mirror header structure
+- Use include guards: `#pragma once` (preferred) or `#ifndef/#define/#endif`
+- Forward declarations in headers when possible
+
+### Architecture Principles
+
+#### Audio Processing
+
+- **Real-time safety**: All audio processing must be real-time safe
+  - No memory allocation in audio callbacks
+  - No mutex locks in audio threads
+  - Use lock-free data structures for audio thread communication
+- **Sample-accurate processing**: Process audio sample-by-sample for pedals/amps
+- **Separate concerns**: Audio processing (JUCE) separate from UI (Qt)
+
+#### Class Design
+
+- **RAII**: Resource management through constructors/destructors
+- **Single Responsibility**: Each class has one clear purpose
+- **Dependency Injection**: Prefer constructor injection for dependencies
+- **Interfaces**: Use abstract base classes for pedals/amps to allow polymorphism
+
+#### Thread Safety
+
+- **Audio Thread**: Only audio processing, no UI access
+- **UI Thread**: Only UI updates, communicate with audio via message passing
+- **Message Passing**: Use JUCE's `MessageManager` for thread-safe UI updates
+- **Lock-free**: Prefer atomic operations and lock-free queues for audio thread communication
+
+#### Performance
+
+- Parallelize whenever possible
+
+### JUCE Integration
+
+- Use JUCE for all audio I/O and processing
+- Use JUCE's `AudioProcessor` base class for audio processing chain
+- Use JUCE's `AudioDeviceManager` for device management
+- Use JUCE's `MidiMessage` if MIDI support is needed later
+
+### Qt Integration
+
+- Use Qt for all UI components
+- Keep Qt and JUCE separate - communicate via interfaces
+- Use Qt's signal/slot mechanism for UI updates
+- Use Qt Designer for complex UI layouts (if needed)
+
+### Testing Standards
+
+- **Unit Tests**: Test each component in isolation
+- **Integration Tests**: Test audio processing pipeline
+- **Real-time Tests**: Verify no allocations in audio callbacks
+- **Coverage**: Aim for >80% code coverage on audio processing code
+- **Test Naming**: `TEST_CASE("ComponentName - TestDescription")`
+
+### Error Handling
+
+- Use exceptions for non-real-time code paths
+- Use return codes/optional for real-time code paths
+- Log errors appropriately (not in audio thread)
+- Validate inputs at boundaries (UI -> Audio)
+
+### Documentation
+
+- **Doxygen-style comments** for public APIs
+- **Inline comments** for complex algorithms
+- **README** for build instructions and architecture overview
+- **Code comments** should explain "why", not "what"
+
+### Performance
+
+- **Profile first**: Don't optimize prematurely
+- **Audio performance**: Target <5ms latency on modern hardware
+- **Memory**: Pre-allocate buffers, avoid allocations in audio callbacks
+- **SIMD**: Consider SIMD optimizations for DSP operations (but profile first)
+
+### Dependencies
+
+- **JUCE**: Audio processing, device management
+- **Qt**: UI framework
+- **Catch2**: Testing framework
+- **CMake**: Build system
+
+### Code Review Checklist
+
+- [ ] Real-time safety verified
+- [ ] No memory allocations in audio callbacks
+- [ ] Thread safety considered
+- [ ] Unit tests added/updated
+- [ ] Documentation updated
+- [ ] Code follows naming conventions
+- [ ] No raw pointers for ownership
+- [ ] Proper error handling
+
+### Example Code Structure
+
+```cpp
+// Good: Clear separation, real-time safe
+namespace finirig::audio {
+class AudioEngine {
+public:
+    explicit AudioEngine(double sampleRate);
+    void processBlock(juce::AudioBuffer<float>& buffer);
+    void setGain(float gain) noexcept;
+
+private:
+    double sampleRate_;
+    float gain_;
+    std::unique_ptr<AudioProcessor> processor_;
+};
+}
+
+// Bad: Memory allocation in audio callback
+void processBlock(juce::AudioBuffer<float>& buffer) {
+    auto* temp = new float[buffer.getNumSamples()]; // NO!
+    // ...
+}
+```
+
+### Git Workflow
+
+- Feature branches for new features
+- Meaningful commit messages
+- PRs require tests and review
+- Main branch always builds and passes tests

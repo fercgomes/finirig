@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Finirig
+Comment=Guitar Processing Plugin
+Exec=finirig_standalone
+Icon=finirig
+Terminal=false
+Categories=AudioVideo;Audio;Music;
+MimeType=
+StartupNotify=true
+

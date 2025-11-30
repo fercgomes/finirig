@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build-macos:
+    name: Build macOS
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Qt6
+        run: |
+          brew install qt@6
+          echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
+
+      - name: Setup JUCE
+        run: |
+          if [ ! -d "third_party/JUCE" ]; then
+            git clone https://github.com/juce-framework/JUCE.git third_party/JUCE
+          fi
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6) \
+            -DBUILD_TESTS=ON \
+            -DBUILD_STANDALONE=ON
+
+      - name: Build
+        run: |
+          cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Test
+        run: |
+          cd build && ctest --output-on-failure
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            qt6-base-dev \
+            libasound2-dev \
+            libjack-jackd2-dev \
+            libfreetype6-dev \
+            libx11-dev \
+            libxext-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxcursor-dev \
+            libxcomposite-dev \
+            libxrender-dev
+
+      - name: Setup JUCE
+        run: |
+          if [ ! -d "third_party/JUCE" ]; then
+            git clone https://github.com/juce-framework/JUCE.git third_party/JUCE
+          fi
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DBUILD_TESTS=ON \
+            -DBUILD_STANDALONE=ON
+
+      - name: Build
+        run: |
+          cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Test
+        run: |
+          cd build && ctest --output-on-failure
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.0"
+          modules: "qtbase qtwidgets"
+
+      - name: Setup JUCE
+        run: |
+          if (-not (Test-Path "third_party\JUCE")) {
+            git clone https://github.com/juce-framework/JUCE.git third_party\JUCE
+          }
+
+      - name: Configure CMake
+        run: |
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_PREFIX_PATH="$env:Qt6_DIR" `
+            -DBUILD_TESTS=ON `
+            -DBUILD_STANDALONE=ON `
+            -G "Visual Studio 17 2022" `
+            -A x64
+
+      - name: Build
+        run: |
+          cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Test
+        run: |
+          cd build && ctest --output-on-failure -C ${{ env.BUILD_TYPE }}

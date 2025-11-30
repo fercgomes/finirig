@@ -1,0 +1,54 @@
+{
+    // C++ IntelliSense settings
+    "C_Cpp.default.cppStandard": "c++20",
+    "C_Cpp.default.cStandard": "c17",
+    "C_Cpp.default.intelliSenseMode": "macos-clang-arm64",
+    "C_Cpp.default.compilerPath": "/usr/bin/clang++",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/third_party/JUCE/modules",
+        "${workspaceFolder}/build/third_party/JUCE"
+    ],
+    "C_Cpp.default.defines": [
+        "JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1"
+    ],
+    
+    // CMake settings
+    "cmake.configureOnOpen": true,
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.generator": "Unix Makefiles",
+    "cmake.configureArgs": [
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DBUILD_TESTS=ON",
+        "-DBUILD_STANDALONE=ON"
+    ],
+    
+    // File associations
+    "files.associations": {
+        "*.h": "cpp",
+        "*.cpp": "cpp",
+        "*.hpp": "cpp"
+    },
+    
+    // Editor settings
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    
+    // Exclude build directories from file watcher
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/third_party/**": true
+    },
+    "search.exclude": {
+        "**/build": true,
+        "**/third_party": true
+    },
+    
+    // Clang-format (if installed)
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    }
+}
+
