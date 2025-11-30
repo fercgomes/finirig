@@ -59,17 +59,29 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             cmake \
+            pkg-config \
             qt6-base-dev \
             libasound2-dev \
             libjack-jackd2-dev \
             libfreetype6-dev \
+            libfontconfig1-dev \
+            libcurl4-openssl-dev \
             libx11-dev \
             libxext-dev \
             libxinerama-dev \
             libxrandr-dev \
             libxcursor-dev \
             libxcomposite-dev \
-            libxrender-dev
+            libxrender-dev \
+            libgl1-mesa-dev \
+            libvulkan-dev
+
+      - name: Verify FreeType Installation
+        run: |
+          echo "Checking for FreeType headers..."
+          find /usr/include -name "ft2build.h" 2>/dev/null || echo "Warning: ft2build.h not found in /usr/include"
+          pkg-config --modversion freetype2 || echo "Warning: freetype2 pkg-config not found"
+          dpkg -L libfreetype6-dev | grep -E "(ft2build|freetype)" | head -5
 
       - name: Setup JUCE
         run: |
@@ -104,7 +116,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      
+
       - name: Install Qt6
         run: |
           pip install aqtinstall

@@ -166,10 +166,40 @@ jobs:
 
       - name: Generate Icons
         shell: bash
+        continue-on-error: true
         run: |
           # Try to generate .ico if ImageMagick is available
-          if command -v convert &> /dev/null; then
-            convert resources/icon.png -define icon:auto-resize=256,128,64,48,32,16 resources/Finirig.ico
+          # Check if icon.png exists first
+          if [ ! -f "resources/icon.png" ]; then
+            echo "resources/icon.png not found, skipping icon generation"
+            exit 0
+          fi
+
+          # Check for ImageMagick specifically (not Windows convert.exe)
+          # Try magick command first (ImageMagick 7+)
+          if command -v magick &> /dev/null 2>&1; then
+            echo "Using ImageMagick magick command"
+            magick resources/icon.png -define icon:auto-resize=256,128,64,48,32,16 resources/Finirig.ico
+            exit 0
+          fi
+
+          # Try to find ImageMagick convert by checking version output
+          # Use full path check to avoid Windows convert.exe
+          CONVERT_CMD=""
+          for path in /usr/bin/convert /mingw64/bin/convert "$(which convert 2>/dev/null)"; do
+            if [ -n "$path" ] && [ -x "$path" ] 2>/dev/null; then
+              if "$path" -version 2>&1 | grep -qi "imagemagick"; then
+                CONVERT_CMD="$path"
+                break
+              fi
+            fi
+          done
+
+          if [ -n "$CONVERT_CMD" ]; then
+            echo "Using ImageMagick convert command: $CONVERT_CMD"
+            "$CONVERT_CMD" resources/icon.png -define icon:auto-resize=256,128,64,48,32,16 resources/Finirig.ico
+          else
+            echo "ImageMagick not found, skipping .ico generation (icon is optional)"
           fi
 
       - name: Configure CMake
@@ -245,17 +275,29 @@ jobs:
           sudo apt-get install -y \
             build-essential \
             cmake \
+            pkg-config \
             qt6-base-dev \
             libasound2-dev \
             libjack-jackd2-dev \
             libfreetype6-dev \
+            libfontconfig1-dev \
+            libcurl4-openssl-dev \
             libx11-dev \
             libxext-dev \
             libxinerama-dev \
             libxrandr-dev \
             libxcursor-dev \
             libxcomposite-dev \
-            libxrender-dev
+            libxrender-dev \
+            libgl1-mesa-dev \
+            libvulkan-dev
+
+      - name: Verify FreeType Installation
+        run: |
+          echo "Checking for FreeType headers..."
+          find /usr/include -name "ft2build.h" 2>/dev/null || echo "Warning: ft2build.h not found in /usr/include"
+          pkg-config --modversion freetype2 || echo "Warning: freetype2 pkg-config not found"
+          dpkg -L libfreetype6-dev | grep -E "(ft2build|freetype)" | head -5
 
       - name: Setup JUCE
         run: |

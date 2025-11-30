@@ -1,6 +1,18 @@
+// Define _USE_MATH_DEFINES for Windows/MSVC to get M_PI
+#ifdef _WIN32
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
+#endif
+
 #include "finirig/pedals/OverdrivePedal.h"
 #include <cmath>
 #include <algorithm>
+
+// Fallback: define M_PI if it's still not defined (some MSVC versions)
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace finirig::pedals {
 
