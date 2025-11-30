@@ -306,7 +306,11 @@ jobs:
             libxrender-dev \
             libgl1-mesa-dev \
             libvulkan-dev \
-            libgtk-3-dev
+            libgtk-3-dev \
+            libgdk-pixbuf2.0-dev \
+            libpango1.0-dev \
+            libatk1.0-dev \
+            libcairo2-dev
 
       - name: Verify FreeType Installation
         run: |
@@ -314,6 +318,13 @@ jobs:
           find /usr/include -name "ft2build.h" 2>/dev/null || echo "Warning: ft2build.h not found in /usr/include"
           pkg-config --modversion freetype2 || echo "Warning: freetype2 pkg-config not found"
           dpkg -L libfreetype6-dev | grep -E "(ft2build|freetype)" | head -5
+
+      - name: Verify GTK Installation
+        run: |
+          echo "Checking for GTK headers..."
+          find /usr/include -name "gtk.h" 2>/dev/null | head -3 || echo "Warning: gtk.h not found"
+          pkg-config --modversion gtk+-3.0 || echo "Warning: gtk+-3.0 pkg-config not found"
+          pkg-config --cflags gtk+-3.0 || echo "Warning: gtk+-3.0 pkg-config flags not available"
 
       - name: Setup JUCE
         run: |
