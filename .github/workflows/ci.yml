@@ -75,8 +75,7 @@ jobs:
             libxrender-dev \
             libgl1-mesa-dev \
             libvulkan-dev \
-            libgtk-3-dev \
-            libwebkit2gtk-4.0-dev
+            libgtk-3-dev
 
       - name: Verify FreeType Installation
         run: |
