@@ -3,24 +3,32 @@ cmake_minimum_required(VERSION 3.22)
 # Read version from VERSION file
 file(READ "${CMAKE_SOURCE_DIR}/VERSION" PROJECT_VERSION_STRING)
 string(STRIP "${PROJECT_VERSION_STRING}" PROJECT_VERSION_STRING)
+string(REGEX REPLACE "\n.*$" "" PROJECT_VERSION_STRING "${PROJECT_VERSION_STRING}")
 
-# Parse version components
-string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" VERSION_MATCH "${PROJECT_VERSION_STRING}")
+# Parse version components (e.g., "1.0.0-alpha.1" -> MAJOR=1, MINOR=0, PATCH=0)
+# Extract base version (before any prerelease suffix)
+string(REGEX REPLACE "-.*$" "" BASE_VERSION "${PROJECT_VERSION_STRING}")
+
+# Parse MAJOR.MINOR.PATCH
+string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" VERSION_MATCH "${BASE_VERSION}")
 if(VERSION_MATCH)
-    string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1" VERSION_MAJOR "${PROJECT_VERSION_STRING}")
-    string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+" "\\1" VERSION_MINOR "${PROJECT_VERSION_STRING}")
-    string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" VERSION_PATCH "${PROJECT_VERSION_STRING}")
+    string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+.*" "\\1" VERSION_MAJOR "${BASE_VERSION}")
+    string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+.*" "\\1" VERSION_MINOR "${BASE_VERSION}")
+    string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" VERSION_PATCH "${BASE_VERSION}")
 else()
+    # Fallback if parsing fails
     set(VERSION_MAJOR "1")
     set(VERSION_MINOR "0")
     set(VERSION_PATCH "0")
+    message(WARNING "Could not parse version from VERSION file, using default 1.0.0")
 endif()
 
+# CMake project() requires MAJOR.MINOR.PATCH format (no prerelease)
 project(finirig VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH} LANGUAGES C CXX)
 
-# Store full version string
+# Store full version string (including prerelease if present)
 set(PROJECT_VERSION_FULL "${PROJECT_VERSION_STRING}")
-message(STATUS "Finirig version: ${PROJECT_VERSION_FULL}")
+message(STATUS "Finirig version: ${PROJECT_VERSION_FULL} (CMake: ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -122,19 +130,28 @@ if(BUILD_STANDALONE)
             OUTPUT_NAME "Finirig"
         )
         
-        # Copy icons to bundle
-        set_source_files_properties(
-            ${CMAKE_SOURCE_DIR}/resources/Finirig.icns
-            PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
-        )
-        set_source_files_properties(
-            ${CMAKE_SOURCE_DIR}/resources/icon.png
-            PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
-        )
-        target_sources(finirig_standalone PRIVATE
-            ${CMAKE_SOURCE_DIR}/resources/Finirig.icns
-            ${CMAKE_SOURCE_DIR}/resources/icon.png
-        )
+        # Copy icons to bundle (only if they exist)
+        if(EXISTS ${CMAKE_SOURCE_DIR}/resources/Finirig.icns)
+            set_source_files_properties(
+                ${CMAKE_SOURCE_DIR}/resources/Finirig.icns
+                PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+            )
+            target_sources(finirig_standalone PRIVATE
+                ${CMAKE_SOURCE_DIR}/resources/Finirig.icns
+            )
+        else()
+            message(WARNING "Finirig.icns not found. App bundle will not have an icon.")
+        endif()
+        
+        if(EXISTS ${CMAKE_SOURCE_DIR}/resources/icon.png)
+            set_source_files_properties(
+                ${CMAKE_SOURCE_DIR}/resources/icon.png
+                PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+            )
+            target_sources(finirig_standalone PRIVATE
+                ${CMAKE_SOURCE_DIR}/resources/icon.png
+            )
+        endif()
     elseif(WIN32)
         # Windows icon
         if(EXISTS ${CMAKE_SOURCE_DIR}/resources/Finirig.ico)

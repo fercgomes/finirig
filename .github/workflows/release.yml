@@ -80,7 +80,11 @@ jobs:
       - name: Generate Icons
         run: |
           chmod +x scripts/generate_icons.sh
-          ./scripts/generate_icons.sh || true
+          if [ -f resources/icon.png ]; then
+            ./scripts/generate_icons.sh
+          else
+            echo "Warning: resources/icon.png not found, skipping icon generation"
+          fi
 
       - name: Configure CMake
         run: |
@@ -99,9 +103,25 @@ jobs:
           cd build
           VERSION="${{ needs.version.outputs.version }}"
 
+          # Find the app bundle (could be in bin/ or Release/ depending on generator)
+          APP_BUNDLE=""
+          if [ -d "bin/Finirig.app" ]; then
+            APP_BUNDLE="bin/Finirig.app"
+          elif [ -d "Release/Finirig.app" ]; then
+            APP_BUNDLE="Release/Finirig.app"
+          elif [ -d "Finirig.app" ]; then
+            APP_BUNDLE="Finirig.app"
+          else
+            echo "Error: Finirig.app not found in expected locations"
+            find . -name "Finirig.app" -type d
+            exit 1
+          fi
+
+          echo "Found app bundle at: $APP_BUNDLE"
+
           # Create DMG
           mkdir -p dmg
-          cp -R bin/Finirig.app dmg/
+          cp -R "$APP_BUNDLE" dmg/
 
           # Create DMG using hdiutil
           hdiutil create -volname "Finirig $VERSION" \
@@ -114,7 +134,7 @@ jobs:
         with:
           name: finirig-macos-${{ needs.version.outputs.version }}
           path: |
-            build/bin/Finirig.app
+            build/**/Finirig.app
             build/Finirig-*.dmg
           retention-days: 30
 
@@ -127,11 +147,16 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Qt6
-        uses: jurplel/install-qt-action@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          version: "6.7.0"
-          modules: "qtbase qtwidgets"
+          python-version: "3.11"
+
+      - name: Install Qt6
+        run: |
+          pip install aqtinstall
+          aqt install-qt windows desktop 6.6.3 win64_msvc2019_64 -O C:\Qt
+          echo "Qt6_DIR=C:\Qt\6.6.3\msvc2019_64" >> $env:GITHUB_ENV
 
       - name: Setup JUCE
         run: |
@@ -149,13 +174,39 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -B build `
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-            -DCMAKE_PREFIX_PATH="$env:Qt6_DIR" `
-            -DBUILD_TESTS=OFF `
-            -DBUILD_STANDALONE=ON `
-            -G "Visual Studio 17 2022" `
-            -A x64
+          # aqtinstall sets Qt6_DIR via GITHUB_ENV
+          $QtPath = "$env:Qt6_DIR"
+          if (-not $QtPath -or -not (Test-Path $QtPath)) {
+            $PossiblePaths = @(
+              "$env:ProgramFiles\Qt\6.6.3\msvc2019_64",
+              "C:\Qt\6.6.3\msvc2019_64"
+            )
+            foreach ($path in $PossiblePaths) {
+              if (Test-Path $path) {
+                $QtPath = $path
+                Write-Host "Found Qt6 at: $QtPath"
+                break
+              }
+            }
+          }
+          if ($QtPath) {
+            Write-Host "Configuring with Qt6 at: $QtPath"
+            cmake -B build `
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+              -DCMAKE_PREFIX_PATH="$QtPath" `
+              -DBUILD_TESTS=OFF `
+              -DBUILD_STANDALONE=ON `
+              -G "Visual Studio 17 2022" `
+              -A x64
+          } else {
+            Write-Host "Qt6_DIR not set, trying CMake auto-detection"
+            cmake -B build `
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+              -DBUILD_TESTS=OFF `
+              -DBUILD_STANDALONE=ON `
+              -G "Visual Studio 17 2022" `
+              -A x64
+          }
 
       - name: Build
         run: |
